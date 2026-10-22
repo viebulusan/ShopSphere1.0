@@ -1,0 +1,213 @@
+<div class="space-y-5 animate-fade-in">
+
+  <div class="space-y-3">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-[#1A1D20] leading-tight" style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;">
+        Discover Pure Craft
+      </h1>
+    </div>
+
+    <div class="relative w-full">
+      <div class="relative flex items-center">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+          <app-icon name="search" [size]="16" color="#1664b0" [strokeWidth]="2.2"></app-icon>
+        </div>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="onSearchChange()"
+          (focus)="isSearchFocused.set(true)"
+          placeholder="Search audio, ceramics, leather, tech..."
+          class="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-full bg-[#FFFFFF] border border-[rgba(22,100,176,0.22)] text-xs sm:text-sm font-semibold text-[#1A1D20] placeholder:text-[#555B62] focus:outline-none focus:border-[#1664b0] focus:ring-2 focus:ring-[#1664b0]/20 shadow-xs transition-all"
+        />
+        @if (searchQuery) {
+          <button (click)="clearSearch()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#1664b0] hover:opacity-75">
+            <app-icon name="x" [size]="15" color="#1664b0"></app-icon>
+          </button>
+        }
+      </div>
+
+      @if (isSearchFocused() && searchQuery.trim().length > 0) {
+        <div class="fixed inset-0 z-30" (click)="isSearchFocused.set(false)"></div>
+        
+        <div class="absolute left-0 right-0 top-full mt-2 z-40 bg-[#FFFFFF] backdrop-blur-xl rounded-[22px] shadow-2xl border border-[rgba(22,100,176,0.2)] p-3 space-y-2 max-h-80 overflow-y-auto no-scrollbar">
+          <div class="flex items-center justify-between text-[11px] font-bold text-[#1A1D20] px-1">
+            <span>{{ liveMatchingProducts().length }} matching pieces</span>
+            <button (click)="shop.navigateTo('discover')" class="text-[#1664b0] hover:underline">
+              All in Discover →
+            </button>
+          </div>
+
+          @if (liveMatchingProducts().length > 0) {
+            <div class="space-y-1">
+              @for (item of liveMatchingProducts().slice(0, 5); track item.id) {
+                <div 
+                  (click)="selectLiveItem(item)"
+                  class="flex items-center gap-3 p-2 rounded-[14px] hover:bg-[#efe8de] cursor-pointer transition-all group">
+                  <div class="w-11 h-11 rounded-[10px] bg-[#efe8de] overflow-hidden shrink-0 border border-[rgba(22,100,176,0.15)]">
+                    <img [src]="item.image" [alt]="item.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-xs font-bold text-[#1A1D20] truncate transition-colors">
+                      {{ item.title }}
+                    </h4>
+                    <p class="text-[10px] text-[#555B62] truncate">{{ item.category }}</p>
+                    <span class="text-xs font-extrabold text-[#1664b0]">₱{{ item.price }}</span>
+                  </div>
+                  <div class="shrink-0 flex items-center gap-0.5 text-[#1A1D20]">
+                    <app-icon name="star" [size]="10" color="#d21624" [filled]="true"></app-icon>
+                    <span class="text-[10px] font-bold">{{ item.rating }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="py-4 text-center text-xs text-[#555B62]">
+              No pieces match "{{ searchQuery }}"
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+    <div class="flex items-center gap-2 py-1 min-w-max">
+      @for (cat of shop.categories; track cat) {
+        <button 
+          (click)="selectCategory(cat)"
+          class="category-pill"
+          [class.active]="shop.selectedCategory() === cat">
+          {{ cat }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div 
+    class="hero-carousel-container relative rounded-[26px] overflow-hidden shadow-sm select-none touch-pan-y group bg-[#FFFFFF] border border-[rgba(22,100,176,0.18)]"
+    (mouseenter)="pauseAutoPlay()" 
+    (mouseleave)="resumeAutoPlay()"
+    (touchstart)="onTouchStart($event)"
+    (touchmove)="onTouchMove($event)"
+    (touchend)="onTouchEnd()"
+    (touchcancel)="onTouchCancel()"
+    (mousedown)="onMouseDown($event)"
+    (mousemove)="onMouseMove($event)"
+    (mouseup)="onMouseUp()"
+    (mouseleave)="onMouseLeave()">
+
+    <div 
+      class="flex w-full will-change-transform"
+      (transitionend)="onTransitionEnd()"
+      [style.transform]="getTrackTransform()"
+      [style.transition]="getTrackTransition()">
+      
+      @for (hero of trackBanners; track hero.cloneKey; let idx = $index) {
+        <div 
+          class="w-full shrink-0 relative p-5 pb-9 sm:p-7 sm:pb-12 text-[#1A1D20] cursor-pointer bg-[#FFFFFF]"
+          (click)="onHeroClick(hero)">
+
+          <div class="relative z-10 flex items-center justify-between gap-4">
+
+            <div class="space-y-2.5 flex-1 min-w-0">
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase shadow-xs bg-[#d21624] text-[#FFFFFF]">
+                <span>{{ hero.tag }}</span>
+              </div>
+
+              <h2 class="text-lg sm:text-2xl font-black tracking-tight leading-snug text-[#1A1D20] line-clamp-2">
+                {{ hero.title }}
+              </h2>
+              
+              <p class="text-xs text-[#555B62] leading-relaxed line-clamp-2">
+                {{ hero.description }}
+              </p>
+
+              <div class="pt-1">
+                <button 
+                  type="button"
+                  (click)="$event.stopPropagation(); onHeroAction(hero)"
+                  class="px-4 py-2 rounded-full bg-[#1664b0] text-[#FFFFFF] text-xs font-black shadow-sm hover:bg-[#0f4880] hover:text-[#FFFFFF] transition-all flex items-center gap-1.5 active:scale-95">
+                  <span>Shop Edition</span>
+                  <app-icon name="arrow-right" [size]="13" color="#FFFFFF"></app-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="w-28 h-28 sm:w-44 sm:h-44 rounded-[18px] overflow-hidden bg-[#efe8de] shrink-0 border border-[rgba(22,100,176,0.18)] shadow-xs relative">
+              <img 
+                [src]="hero.image" 
+                [alt]="hero.title" 
+                draggable="false"
+                class="w-full h-full object-cover pointer-events-none select-none transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+
+          </div>
+        </div>
+      }
+    </div>
+
+    <button 
+      type="button"
+      (click)="$event.stopPropagation(); prevSlide()"
+      aria-label="Previous card"
+      class="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-[#FFFFFF]/95 hover:bg-[#efe8de] text-[#1664b0] hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-90 shadow-sm border border-[rgba(22,100,176,0.22)]">
+      <app-icon name="chevron-left" [size]="16" color="#1664b0"></app-icon>
+    </button>
+    <button 
+      type="button"
+      (click)="$event.stopPropagation(); nextSlide()"
+      aria-label="Next card"
+      class="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-[#FFFFFF]/95 hover:bg-[#efe8de] text-[#1664b0] hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-90 shadow-sm border border-[rgba(22,100,176,0.22)]">
+      <app-icon name="chevron-right" [size]="16" color="#1664b0"></app-icon>
+    </button>
+
+    <div class="absolute bottom-2.5 sm:bottom-3.5 left-5 right-5 sm:left-7 sm:right-7 z-20 flex items-center gap-2 pointer-events-auto">
+      @for (hero of heroBanners; track hero.id; let idx = $index) {
+        <button 
+          type="button"
+          (click)="$event.stopPropagation(); setHeroIndex(idx)" 
+          class="flex-1 py-1 -my-1 transition-all group/bar"
+          [title]="hero.title">
+          <div class="w-full h-1.5 rounded-full bg-[rgba(22,100,176,0.14)] overflow-hidden">
+            <div 
+              class="h-full bg-[#1664b0] rounded-full transition-all"
+              [style.width]="activeHeroIndex() === idx ? (progressWidth() + '%') : (activeHeroIndex() > idx ? '100%' : '0%')">
+            </div>
+          </div>
+        </button>
+      }
+    </div>
+
+  </div>
+
+  <div class="pt-1">
+    <h3 class="text-base sm:text-lg font-extrabold text-[#1A1D20] tracking-tight">
+      {{ shop.selectedCategory() === 'All' ? 'Curated Collection' : shop.selectedCategory() }}
+    </h3>
+    <p class="text-[11px] font-medium text-[#555B62]">
+      {{ shop.filteredProducts().length }} artisanal pieces available
+    </p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+    @for (item of shop.filteredProducts(); track item.id) {
+      <app-product-card [product]="item"></app-product-card>
+    }
+  </div>
+
+  @if (shop.filteredProducts().length === 0) {
+    <div class="py-12 text-center apple-card p-6">
+      <div class="w-12 h-12 mx-auto rounded-full bg-[#efe8de] border border-[rgba(22,100,176,0.2)] flex items-center justify-center text-[#1664b0] mb-3">
+        <app-icon name="search" [size]="20" color="#1664b0"></app-icon>
+      </div>
+      <h4 class="text-sm font-bold text-[#1A1D20]">No pieces match your search</h4>
+      <p class="text-xs text-[#555B62] mt-1">Try headphones, ceramics, leather, or tap reset.</p>
+      <button (click)="clearSearch()" class="mt-3 apple-button-secondary text-xs py-2 px-4">
+        Reset Filters
+      </button>
+    </div>
+  }
+
+</div>
