@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "gen-lang-client-0776409315"
+  },
+  "targets": {
+    "gen-lang-client-0776409315": {
+      "hosting": {
+        "shopsphere": [
+          "shopsphere-1-0"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
